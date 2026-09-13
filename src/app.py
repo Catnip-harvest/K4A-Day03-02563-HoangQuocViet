@@ -84,12 +84,12 @@ def summarize_observation(obs_data: dict) -> str:
     return f"Phản hồi từ công cụ: {json.dumps(obs_data, ensure_ascii=False)}"
 
 
-def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) -> list:
+def iter_react_steps(user_query: str, provider, mcp_server: MCPAcademicServer):
     """
-    [REACT AGENT LOOP] Thực thi vòng lặp Thought -> Action -> Observation với MCP Server
-    Trả về danh sách trace log của phiên thực thi.
+    [REACT AGENT LOOP - STREAMING] Sinh lần lượt các sự kiện của vòng lặp
+    Thought -> Action -> Observation để giao diện realtime tiêu thụ được.
     """
-    print(f"\n🤖 [REACT AGENT] Câu hỏi: {user_query}")
+    run_start_time = time.time()
 
     step = 0
     trace_logs = []
@@ -99,10 +99,16 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
     last_observation = {}
     final_answer = None
 
+    yield {
+        "event": "start",
+        "question": user_query,
+        "max_iterations": MAX_ITERATIONS,
+        "tools": [tool.get("name") for tool in tools_list]
+    }
+
     while step < MAX_ITERATIONS:
         step += 1
         step_start_time = time.time()
-        print(f"\n--- 🔄 Vòng lặp ReAct Loop (Step {step}/{MAX_ITERATIONS}) ---")
 
         # Nạp lại toàn bộ Observation đã thu thập để LLM quyết định hành động kế tiếp
         prompt = user_query
@@ -119,12 +125,11 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
         latency_ms = round((time.time() - step_start_time) * 1000, 2)
 
         thought = llm_response.get("thought", "Đang suy luận...")
-        print(f"🧠 [Thought]: {thought}")
+        yield {"event": "thought", "step": step, "thought": thought, "latency_ms": latency_ms}
 
         # Trường hợp 1: LLM quyết định trả lời bằng văn bản trực tiếp
         if llm_response.get("type") == "text":
             final_answer = llm_response.get("content", "") or summarize_observation(last_observation)
-            print(f"🏁 [Final Answer]: {final_answer}")
             trace_logs.append({
                 "step": step,
                 "query": user_query,
@@ -133,28 +138,42 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
                 "output": final_answer,
                 "latency_ms": latency_ms
             })
+            yield {
+                "event": "final",
+                "step": step,
+                "thought": thought,
+                "output": final_answer,
+                "latency_ms": latency_ms
+            }
             break
 
         # Trường hợp 2: LLM đề xuất gọi Tool (Action)
         elif llm_response.get("type") == "tool_call":
             tool_name = llm_response.get("tool_name")
             arguments = llm_response.get("arguments", {})
-            print(f"🛠️ [Action Proposed]: {tool_name}({arguments})")
+            yield {"event": "action", "step": step, "tool_name": tool_name, "arguments": arguments}
 
             # Chặn lặp vô hạn khi LLM đề xuất lại đúng lời gọi Tool đã thực thi
             call_signature = f"{tool_name}:{json.dumps(arguments, ensure_ascii=False, sort_keys=True)}"
             if call_signature in executed_calls:
-                print("⚠️ [Loop Guard]: Tool này đã được gọi với cùng tham số. Dừng vòng lặp và tổng hợp kết quả.")
+                yield {"event": "guard", "step": step, "reason": "repeat_tool_call"}
                 final_answer = summarize_observation(last_observation)
-                print(f"🏁 [Final Answer]: {final_answer}")
+                guard_thought = "Phát hiện lời gọi Tool lặp lại, tổng hợp kết quả từ Observation gần nhất."
                 trace_logs.append({
                     "step": step,
                     "query": user_query,
                     "action_type": "FINAL_ANSWER",
-                    "thought": "Phát hiện lời gọi Tool lặp lại, tổng hợp kết quả từ Observation gần nhất.",
+                    "thought": guard_thought,
                     "output": final_answer,
                     "latency_ms": latency_ms
                 })
+                yield {
+                    "event": "final",
+                    "step": step,
+                    "thought": guard_thought,
+                    "output": final_answer,
+                    "latency_ms": latency_ms
+                }
                 break
             executed_calls.add(call_signature)
 
@@ -163,7 +182,6 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
             obs_data = mcp_result.get("result", {})
             last_observation = obs_data
             obs_str = json.dumps(obs_data, ensure_ascii=False)
-            print(f"👁️ [Observation từ MCP Server]: {obs_str}")
 
             trace_logs.append({
                 "step": step,
@@ -174,6 +192,14 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
                 "observation": obs_data,
                 "latency_ms": latency_ms
             })
+            yield {
+                "event": "observation",
+                "step": step,
+                "tool_name": tool_name,
+                "observation": obs_data,
+                "jsonrpc": "2.0",
+                "server": mcp_server.server_name
+            }
 
             # Nạp Observation vào scratchpad cho lượt suy luận kế tiếp
             scratchpad.append(
@@ -183,16 +209,56 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
 
     # Hết số vòng lặp cho phép mà Agent vẫn chưa chốt câu trả lời
     if final_answer is None:
+        yield {"event": "guard", "step": step, "reason": "max_iterations"}
         final_answer = summarize_observation(last_observation)
-        print(f"🏁 [Final Answer]: {final_answer}")
+        max_iter_thought = f"Đã đạt giới hạn {MAX_ITERATIONS} vòng lặp, tổng hợp kết quả từ Observation gần nhất."
         trace_logs.append({
             "step": step + 1,
             "query": user_query,
             "action_type": "FINAL_ANSWER",
-            "thought": f"Đã đạt giới hạn {MAX_ITERATIONS} vòng lặp, tổng hợp kết quả từ Observation gần nhất.",
+            "thought": max_iter_thought,
             "output": final_answer,
             "latency_ms": 10.0
         })
+        yield {
+            "event": "final",
+            "step": step + 1,
+            "thought": max_iter_thought,
+            "output": final_answer,
+            "latency_ms": 10.0
+        }
+
+    yield {
+        "event": "done",
+        "trace": trace_logs,
+        "total_latency_ms": round((time.time() - run_start_time) * 1000, 2)
+    }
+
+
+def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) -> list:
+    """
+    [REACT AGENT LOOP] Thực thi vòng lặp Thought -> Action -> Observation với MCP Server
+    Trả về danh sách trace log của phiên thực thi.
+    """
+    print(f"\n🤖 [REACT AGENT] Câu hỏi: {user_query}")
+
+    trace_logs = []
+    for event in iter_react_steps(user_query, provider, mcp_server):
+        event_type = event["event"]
+
+        if event_type == "thought":
+            print(f"\n--- 🔄 Vòng lặp ReAct Loop (Step {event['step']}/{MAX_ITERATIONS}) ---")
+            print(f"🧠 [Thought]: {event['thought']}")
+        elif event_type == "action":
+            print(f"🛠️ [Action Proposed]: {event['tool_name']}({event['arguments']})")
+        elif event_type == "observation":
+            print(f"👁️ [Observation từ MCP Server]: {json.dumps(event['observation'], ensure_ascii=False)}")
+        elif event_type == "guard" and event["reason"] == "repeat_tool_call":
+            print("⚠️ [Loop Guard]: Tool này đã được gọi với cùng tham số. Dừng vòng lặp và tổng hợp kết quả.")
+        elif event_type == "final":
+            print(f"🏁 [Final Answer]: {event['output']}")
+        elif event_type == "done":
+            trace_logs = event["trace"]
 
     return trace_logs
 
