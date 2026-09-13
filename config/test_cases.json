@@ -1,0 +1,51 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Chào bạn, bạn là ai và có thể giúp tôi những việc gì?",
+    "expected_behavior": "Agent trả lời trực tiếp từ System Prompt (giới thiệu vai trò và các Tool sẵn có), không gọi bất kỳ Tool nào.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'academic_query' với mã SV2026001.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "appointment_booking",
+    "question": "Đặt lịch hẹn tư vấn học vụ cho sinh viên SV2026002 với cố vấn TS. Lê Thị B vào lúc 09:00 ngày 20/09/2026.",
+    "expected_behavior": "Agent tự động phát sinh Tool Call 'schedule_appointment' với đúng thời gian và thông tin sinh viên.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Hãy tra cứu cố vấn học tập của sinh viên SV2026001 rồi đặt lịch hẹn tư vấn với đúng cố vấn đó vào lúc 14:00 ngày 15/09/2026.",
+    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct: Tra cứu cố vấn học tập của sinh viên trước, sau đó tiến hành đặt lịch hẹn.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Hãy tra cứu thông tin học vụ của sinh viên SV9999999.",
+    "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool và đưa ra phản hồi lịch sự, chính xác không bịa đặt dữ liệu.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC06",
+    "type": "web_lookup",
+    "question": "Theo quy chế học vụ VinUni, sinh viên cần GPA tích lũy tối thiểu bao nhiêu để tốt nghiệp?",
+    "expected_behavior": "Agent gọi Tool 'search_vinuni_web', trả lời dựa trên trang Academic Regulations của website VinUni và trích dẫn URL nguồn.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC07",
+    "type": "multi_tool_reasoning",
+    "question": "Tra cứu GPA của sinh viên SV2026002, rồi đối chiếu với quy chế học vụ trên website VinUni để cho biết em ấy có đủ điều kiện GPA tốt nghiệp không.",
+    "expected_behavior": "Agent gọi 'academic_query' rồi 'search_vinuni_web', tổng hợp hai Observation và nêu rõ nguồn thông tin.",
+    "complexity": "High"
+  }
+]

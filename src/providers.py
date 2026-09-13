@@ -4,6 +4,7 @@ Hỗ trợ Native Tool Calling và chuyển đổi linh hoạt qua biến môi t
 """
 
 import os
+import re
 import sys
 import json
 from typing import Dict, Any, List
@@ -26,6 +27,14 @@ class BaseLLMProvider:
         raise NotImplementedError
 
 
+SCRATCHPAD_MARKER = "[KẾT QUẢ CÁC BƯỚC ĐÃ THỰC HIỆN]"
+
+VINUNI_WEB_KEYWORDS = [
+    "quy chế", "tốt nghiệp", "gpa", "học phí", "học bổng",
+    "lịch năm học", "chương trình đào tạo", "tín chỉ", "cảnh báo học vụ"
+]
+
+
 class MockOfflineProvider(BaseLLMProvider):
     """Offline Mock Provider dùng để chạy thử mà không tốn API Key"""
     def __init__(self):
@@ -35,8 +44,25 @@ class MockOfflineProvider(BaseLLMProvider):
         return f"[Mock Chatbot Response]: Xin chào! Tôi đã nhận được câu hỏi '{prompt}'. (Chế độ Chatbot không có Tool tra cứu dữ liệu thời gian thực)."
 
     def generate_with_tools(self, prompt: str, tools_schema: List[Dict[str, Any]], system_prompt: str = "") -> Dict[str, Any]:
-        prompt_lower = prompt.lower()
-        
+        # Tách câu hỏi gốc khỏi phần Observation đã tích lũy để nhận diện intent không bị nhiễu
+        question, _, history = prompt.partition(SCRATCHPAD_MARKER)
+        question = question.strip()
+        prompt_lower = question.lower()
+        history_lower = history.lower()
+
+        student_match = re.search(r"sv\d{4,}", prompt_lower)
+        student_id = student_match.group(0).upper() if student_match else None
+        needs_web = any(keyword in prompt_lower for keyword in VINUNI_WEB_KEYWORDS)
+
+        # Câu hỏi về website VinUni: ưu tiên tra cứu hồ sơ sinh viên trước (nếu có mã SV), rồi mới tra web
+        if needs_web and "search_vinuni_web" not in history_lower and (not student_id or "academic_query" in history_lower):
+            return {
+                "type": "tool_call",
+                "tool_name": "search_vinuni_web",
+                "arguments": {"query": question},
+                "thought": "Câu hỏi liên quan tới quy chế/thông tin công khai của VinUni. Tôi sẽ gọi tool search_vinuni_web để tra cứu website chính thức thay vì trả lời bằng kiến thức chung."
+            }
+
         # Mô phỏng nhận diện intent gọi Tool
         if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
             return {
@@ -45,12 +71,30 @@ class MockOfflineProvider(BaseLLMProvider):
                 "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "PGS.TS Nguyễn Văn A"},
                 "thought": "Người dùng yêu cầu đặt lịch hẹn tư vấn cho sinh viên SV2026001. Tôi sẽ gọi tool schedule_appointment."
             }
-        elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
+        elif ("sv2026001" in prompt_lower or "tra cứu" in prompt_lower) and "academic_query" not in history_lower:
+            target_id = student_id or "SV2026001"
             return {
                 "type": "tool_call",
                 "tool_name": "academic_query",
-                "arguments": {"student_id": "SV2026001"},
-                "thought": "Người dùng muốn tra cứu thông tin học vụ của sinh viên SV2026001. Tôi sẽ gọi tool academic_query."
+                "arguments": {"student_id": target_id},
+                "thought": f"Người dùng muốn tra cứu thông tin học vụ của sinh viên {target_id}. Tôi sẽ gọi tool academic_query."
+            }
+        elif history_lower.strip():
+            return {
+                "type": "text",
+                "content": "",
+                "thought": "Đã có đủ Observation từ MCP Server, tổng hợp câu trả lời cuối cùng dựa trên dữ liệu Tool trả về."
+            }
+        elif any(word in prompt_lower for word in ["bạn là ai", "giúp tôi những việc gì", "giới thiệu", "chào"]):
+            return {
+                "type": "text",
+                "content": (
+                    "[Mock Agent Response]: Xin chào! Tôi là Trợ lý Tác tử Học vụ của VinUni. "
+                    "Tôi có thể tra cứu hồ sơ học vụ theo mã sinh viên, đặt lịch hẹn với Cố vấn học tập, "
+                    "và tra cứu thông tin công khai trên website chính thức của VinUni (quy chế học vụ, "
+                    "điều kiện tốt nghiệp, lịch năm học, học phí, học bổng)."
+                ),
+                "thought": "Câu hỏi giới thiệu về vai trò và năng lực của Agent, trả lời trực tiếp từ System Prompt, không cần gọi Tool."
             }
         else:
             return {

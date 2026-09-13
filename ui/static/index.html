@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!-- BLI-UI-MARKER: vinuni-day03-react-agent-console -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trợ lý Học vụ VinUni: ReAct Agent + MCP</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <h1 class="brand">Trợ lý Học vụ VinUni<span class="brand-sep"></span><span class="brand-tail">ReAct Agent + MCP</span></h1>
+    <div id="healthChip" class="health health-loading" role="status" aria-live="polite">
+      <span class="sk sk-chip"></span>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Điều hướng trang">
+    <button class="tab is-active" type="button" data-view="demo" aria-current="page">Demo trực tiếp</button>
+    <button class="tab" type="button" data-view="kien-truc">Kiến trúc</button>
+    <button class="tab" type="button" data-view="cong-cu">Công cụ (Tools)</button>
+    <button class="tab" type="button" data-view="agentic-fit">Agentic Fit</button>
+  </nav>
+</header>
+
+<main class="page">
+
+  <!-- ============================ DEMO ============================ -->
+  <section class="view is-active" id="view-demo">
+    <div class="demo-grid">
+
+      <!-- ANSWERS: full width so compare mode reads side by side -->
+      <div class="results" id="results" aria-live="polite"></div>
+
+      <!-- LEFT -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Hỏi đáp</h2>
+        </div>
+        <div class="panel-body">
+
+          <form id="askForm" novalidate>
+            <label class="field-label" for="question">Câu hỏi của sinh viên</label>
+            <textarea id="question" class="input" rows="3" spellcheck="false"
+              placeholder="Ví dụ: Hãy tra cứu thông tin học vụ của sinh viên SV2026001."></textarea>
+            <p class="field-help">Nhấn Enter để chạy. Nhấn Shift + Enter để xuống dòng.</p>
+            <p class="inline-error" id="questionError" hidden></p>
+
+            <fieldset class="modes">
+              <legend class="field-label">Chế độ chạy</legend>
+              <div class="seg" role="radiogroup" aria-label="Chế độ chạy">
+                <button type="button" class="seg-btn is-on" data-mode="agent" role="radio" aria-checked="true">ReAct Agent (Cấp 3)</button>
+                <button type="button" class="seg-btn" data-mode="compare" role="radio" aria-checked="false">So sánh Chatbot vs Agent</button>
+              </div>
+            </fieldset>
+
+            <button type="submit" class="btn btn-primary" id="runBtn">Chạy demo</button>
+          </form>
+
+          <div class="suggest">
+            <h3 class="sub-title">Câu hỏi mẫu</h3>
+            <div id="chips" class="chips">
+              <span class="sk sk-line" style="width:72%"></span>
+              <span class="sk sk-line" style="width:88%"></span>
+              <span class="sk sk-line" style="width:64%"></span>
+            </div>
+            <p class="inline-error" id="chipsError" hidden></p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Vết suy luận (Waterfall Trace)</h2>
+          <button type="button" class="btn btn-ghost btn-sm" id="copyBtn" hidden>Sao chép trace JSON</button>
+        </div>
+        <div class="panel-body panel-body-trace">
+          <div id="traceSummary" class="trace-summary" hidden></div>
+          <div id="trace" class="trace">
+            <div class="empty">
+              <p class="empty-title">Chưa có phiên chạy nào</p>
+              <p class="empty-text">Nhập câu hỏi ở cột bên trái rồi bấm Chạy demo. Từng bước của vòng lặp ReAct sẽ hiện ra theo thứ tự:</p>
+              <div class="empty-preview" aria-hidden="true">
+                <div class="empty-row"><span class="kind kind-thought">THOUGHT</span><span class="empty-bar"></span></div>
+                <div class="empty-row"><span class="kind kind-action">ACTION</span><span class="empty-bar" style="width:46%"></span></div>
+                <div class="empty-row"><span class="kind kind-obs">OBSERVATION</span><span class="empty-bar" style="width:30%"></span></div>
+                <div class="empty-row"><span class="kind kind-final">FINAL</span><span class="empty-bar" style="width:62%"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================ KIẾN TRÚC ============================ -->
+  <section class="view" id="view-kien-truc">
+    <div class="panel">
+      <div class="panel-head"><h2 class="panel-title">Kiến trúc hệ thống</h2></div>
+      <div class="panel-body">
+        <div class="diagram-wrap">
+          <svg class="diagram" viewBox="0 -38 1160 628" role="img"
+               aria-label="Sơ đồ kiến trúc: Người dùng gửi câu hỏi tới FastAPI server, server chạy vòng lặp ReAct với LLM Gemini, vòng lặp gọi MCP Client, MCP Client gọi MCP Server vinuni-academic-mcp-server qua JSON-RPC 2.0, MCP Server thực thi các Tool academic_query, schedule_appointment và search_vinuni_web, các Tool đọc dữ liệu từ MOCK_DATABASE và fixture crawl data/vinuni_pages.json.">
+            <defs>
+              <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ink-3)"/>
+              </marker>
+              <marker id="ah-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+              </marker>
+            </defs>
+
+            <!-- band 1 -->
+            <rect class="dg-box" x="24" y="24" width="250" height="76" rx="10"/>
+            <text class="dg-t" x="44" y="56">Người dùng / UI</text>
+            <text class="dg-s" x="44" y="80">Trình duyệt, máy chiếu</text>
+
+            <line class="dg-arrow" x1="274" y1="62" x2="318" y2="62" marker-end="url(#ah)"/>
+
+            <rect class="dg-box" x="324" y="24" width="300" height="76" rx="10"/>
+            <text class="dg-t" x="344" y="56">FastAPI server</text>
+            <text class="dg-s dg-mono" x="344" y="80">ui/server.py</text>
+
+            <path class="dg-arrow dg-arrow-accent" d="M 474 100 L 474 130" marker-end="url(#ah-accent)"/>
+            <text class="dg-lbl" x="486" y="122">POST /api/agent</text>
+
+            <path class="dg-arrow dg-arrow-accent" d="M 474 24 L 474 -12 L 149 -12 L 149 20" marker-end="url(#ah-accent)"/>
+            <text class="dg-lbl" x="492" y="-18">SSE: thought, action, observation, final</text>
+
+            <!-- band 2: react loop -->
+            <rect class="dg-group" x="24" y="136" width="600" height="300" rx="10"/>
+            <text class="dg-g" x="44" y="164">ReAct Loop (tối đa 5 vòng lặp)</text>
+
+            <rect class="dg-box dg-box-accent" x="64" y="186" width="250" height="60" rx="10"/>
+            <text class="dg-t" x="82" y="212">1. Thought</text>
+            <text class="dg-s" x="82" y="234">Suy luận bước kế tiếp</text>
+
+            <rect class="dg-box dg-box-accent" x="64" y="262" width="250" height="60" rx="10"/>
+            <text class="dg-t" x="82" y="288">2. Action</text>
+            <text class="dg-s" x="82" y="310">Chọn Tool và tham số</text>
+
+            <rect class="dg-box dg-box-accent" x="64" y="338" width="250" height="60" rx="10"/>
+            <text class="dg-t" x="82" y="364">3. Observation</text>
+            <text class="dg-s" x="82" y="386">Kết quả Tool trả về</text>
+
+            <line class="dg-arrow" x1="189" y1="246" x2="189" y2="258" marker-end="url(#ah)"/>
+            <line class="dg-arrow" x1="189" y1="322" x2="189" y2="334" marker-end="url(#ah)"/>
+            <path class="dg-arrow" d="M 64 368 L 44 368 L 44 216 L 60 216" marker-end="url(#ah)" fill="none"/>
+
+            <rect class="dg-box" x="344" y="186" width="256" height="94" rx="10"/>
+            <text class="dg-t" x="362" y="214">LLM: Gemini</text>
+            <text class="dg-s" x="362" y="238">Native Tool Calling</text>
+            <text class="dg-s" x="362" y="262">Sinh Thought và Action</text>
+            <line class="dg-arrow" x1="318" y1="224" x2="340" y2="224" marker-end="url(#ah)" marker-start="url(#ah)"/>
+
+            <rect class="dg-box dg-box-dim" x="344" y="300" width="256" height="94" rx="10"/>
+            <text class="dg-t" x="362" y="328">Loop Guard</text>
+            <text class="dg-s" x="362" y="352">Chặn gọi lặp cùng Tool</text>
+            <text class="dg-s" x="362" y="376">Chặn vượt 5 vòng lặp</text>
+
+            <!-- band 2: mcp -->
+            <rect class="dg-box" x="668" y="186" width="210" height="94" rx="10"/>
+            <text class="dg-t" x="686" y="222">MCP Client</text>
+            <text class="dg-s dg-mono" x="686" y="248">src/app.py</text>
+
+            <line class="dg-arrow" x1="624" y1="206" x2="662" y2="206" marker-end="url(#ah)"/>
+            <text class="dg-lbl" x="668" y="176">gọi Tool</text>
+            <line class="dg-arrow" x1="668" y1="262" x2="630" y2="262" marker-end="url(#ah)"/>
+            <text class="dg-lbl" x="668" y="300">trả Observation</text>
+
+            <rect class="dg-box dg-box-accent" x="922" y="164" width="214" height="138" rx="10"/>
+            <text class="dg-t" x="940" y="198">MCP Server</text>
+            <text class="dg-s dg-mono" x="940" y="224">vinuni-academic</text>
+            <text class="dg-s dg-mono" x="940" y="246">-mcp-server</text>
+            <text class="dg-s" x="940" y="274">JSON-RPC 2.0</text>
+
+            <line class="dg-arrow" x1="878" y1="206" x2="916" y2="206" marker-end="url(#ah)"/>
+            <line class="dg-arrow" x1="922" y1="262" x2="884" y2="262" marker-end="url(#ah)"/>
+
+            <!-- band 3: tools -->
+            <line class="dg-arrow" x1="1029" y1="302" x2="1029" y2="334" marker-end="url(#ah)"/>
+            <rect class="dg-group" x="668" y="340" width="468" height="228" rx="10"/>
+            <text class="dg-g" x="688" y="368">Tools công bố qua MCP</text>
+
+            <rect class="dg-box" x="688" y="382" width="428" height="52" rx="10"/>
+            <text class="dg-t dg-mono" x="706" y="404">academic_query</text>
+            <text class="dg-s" x="706" y="425">Tra cứu hồ sơ học vụ</text>
+
+            <rect class="dg-box" x="688" y="444" width="428" height="52" rx="10"/>
+            <text class="dg-t dg-mono" x="706" y="466">schedule_appointment</text>
+            <text class="dg-s" x="706" y="487">Đặt lịch hẹn cố vấn</text>
+
+            <rect class="dg-box" x="688" y="506" width="428" height="52" rx="10"/>
+            <text class="dg-t dg-mono" x="706" y="528">search_vinuni_web</text>
+            <text class="dg-s" x="706" y="549">Tra cứu website VinUni</text>
+
+            <!-- data -->
+            <rect class="dg-group" x="24" y="452" width="544" height="106" rx="10"/>
+            <text class="dg-g" x="44" y="480">Dữ liệu</text>
+            <rect class="dg-box" x="44" y="492" width="200" height="50" rx="10"/>
+            <text class="dg-t dg-mono" x="60" y="514">MOCK_DATABASE</text>
+            <text class="dg-s dg-mono" x="60" y="534">src/tools.py</text>
+            <rect class="dg-box" x="258" y="492" width="290" height="50" rx="10"/>
+            <text class="dg-t dg-mono" x="274" y="514">data/vinuni_pages.json</text>
+            <text class="dg-s" x="274" y="534">Fixture crawl</text>
+
+            <line class="dg-arrow" x1="668" y1="505" x2="574" y2="505" marker-end="url(#ah)"/>
+            <text class="dg-lbl" x="580" y="493">đọc dữ liệu</text>
+          </svg>
+        </div>
+
+        <h3 class="sub-title sub-title-spaced">Bốn cấp độ hệ thống AI</h3>
+        <ol class="levels">
+          <li class="level">
+            <span class="level-tag">Cấp 1</span>
+            <span class="level-name">Rule-based</span>
+            <span class="level-desc">Trả lời theo luật if/else cố định, không hiểu ngôn ngữ tự nhiên.</span>
+          </li>
+          <li class="level">
+            <span class="level-tag">Cấp 2</span>
+            <span class="level-name">LLM Chatbot</span>
+            <span class="level-desc">Hiểu ngôn ngữ tự nhiên nhưng chỉ dùng kiến thức có sẵn, không tra cứu được.</span>
+          </li>
+          <li class="level is-current">
+            <span class="level-tag">Cấp 3</span>
+            <span class="level-name">ReAct Agent</span>
+            <span class="level-desc">Lặp Thought, Action, Observation và gọi Tool qua MCP. Đây là bài lab hôm nay.</span>
+          </li>
+          <li class="level">
+            <span class="level-tag">Cấp 4</span>
+            <span class="level-name">Autonomous</span>
+            <span class="level-desc">Tự đặt mục tiêu, tự lập kế hoạch dài hạn và có bộ nhớ bền vững.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ TOOLS ============================ -->
+  <section class="view" id="view-cong-cu">
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Công cụ (Tools)</h2>
+        <span id="toolsMeta" class="panel-meta"></span>
+      </div>
+      <div class="panel-body" id="toolsBody">
+        <div class="sk-tool">
+          <span class="sk sk-line" style="width:34%"></span>
+          <span class="sk sk-line" style="width:78%"></span>
+          <span class="sk sk-block"></span>
+        </div>
+        <div class="sk-tool">
+          <span class="sk sk-line" style="width:40%"></span>
+          <span class="sk sk-line" style="width:66%"></span>
+          <span class="sk sk-block"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ AGENTIC FIT ============================ -->
+  <section class="view" id="view-agentic-fit">
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Agentic Fit: bài toán này có hợp với Agent không</h2>
+        <span class="panel-meta">Tổng điểm <strong class="score-total">16/20</strong></span>
+      </div>
+      <div class="panel-body">
+        <ul class="fit-list">
+          <li class="fit">
+            <div class="fit-head">
+              <h3 class="fit-name">Multi-step Reasoning</h3>
+              <span class="fit-score">4/5</span>
+            </div>
+            <div class="meter" role="img" aria-label="4 trên 5">
+              <span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg"></span>
+            </div>
+            <p class="fit-why">TC04 cần 2 bước nối tiếp: tra cứu cố vấn rồi mới đặt lịch.</p>
+          </li>
+          <li class="fit">
+            <div class="fit-head">
+              <h3 class="fit-name">Tool Interaction</h3>
+              <span class="fit-score">5/5</span>
+            </div>
+            <div class="meter" role="img" aria-label="5 trên 5">
+              <span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span>
+            </div>
+            <p class="fit-why">Dữ liệu học vụ không có trong LLM, bắt buộc gọi Tool qua MCP.</p>
+          </li>
+          <li class="fit">
+            <div class="fit-head">
+              <h3 class="fit-name">Dynamic Decision</h3>
+              <span class="fit-score">4/5</span>
+            </div>
+            <div class="meter" role="img" aria-label="4 trên 5">
+              <span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg"></span>
+            </div>
+            <p class="fit-why">Tham số bước sau (advisor_name) phụ thuộc Observation bước trước.</p>
+          </li>
+          <li class="fit">
+            <div class="fit-head">
+              <h3 class="fit-name">Long Horizon Goal</h3>
+              <span class="fit-score">3/5</span>
+            </div>
+            <div class="meter" role="img" aria-label="3 trên 5">
+              <span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg on"></span><span class="meter-seg"></span><span class="meter-seg"></span>
+            </div>
+            <p class="fit-why">Mục tiêu chỉ trong một phiên ngắn, chưa cần bộ nhớ dài hạn.</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,11 +1,11 @@
 [
   {
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
+    "query": "Chào bạn, bạn là ai và có thể giúp tôi những việc gì?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn! Tôi là Trợ lý Tác tử Học vụ Thông minh (ReAct Agent Assistant) của Đại học VinUni.\n\nTôi được thiết kế để hỗ trợ bạn giải đáp các thắc mắc liên quan đến đời sống học tập tại trường. Cụ thể, tôi có thể giúp bạn thực hiện các công việc sau:\n\n1.  **Tra cứu thông tin học vụ:** Giải đáp các câu hỏi về quy chế học vụ, điều kiện tốt nghiệp, GPA, cảnh báo học vụ, lịch năm học, chương trình đào tạo, học phí và học bổng thông qua nguồn dữ liệu chính thức từ website VinUni.\n2.  **Tra cứu hồ sơ cá nhân:** Hỗ trợ bạn xem thông tin học vụ của chính mình (khi bạn cung cấp mã sinh viên).\n3.  **Đặt lịch hẹn tư vấn:** Hỗ trợ bạn đặt lịch hẹn với Cố vấn học tập (Academic Advisor) để được hướng dẫn chi tiết hơn về lộ trình học tập.\n\n**Lưu ý:** Để đảm bảo tính chính xác, đối với các câu hỏi về quy định và chính sách, tôi sẽ luôn tra cứu từ nguồn website chính thức của VinUni.\n\nBạn đang cần hỗ trợ vấn đề gì không? Hãy cho tôi biết nhé!",
+    "latency_ms": 3126.85
   },
   {
     "step": 1,
@@ -15,15 +15,250 @@
     "arguments": {
       "student_id": "SV2026001"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "SUCCESS",
+      "student_id": "SV2026001",
+      "data": {
+        "full_name": "Nguyễn Văn An",
+        "class": "AI-K4",
+        "gpa": 3.85,
+        "email": "an.nv@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "PGS.TS Nguyễn Văn A"
+      }
+    },
+    "latency_ms": 1298.93
   },
   {
     "step": 2,
     "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
-    "latency_ms": 10.0
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Thông tin học vụ của sinh viên SV2026001 như sau:\n\n*   **Họ và tên:** Nguyễn Văn An\n*   **Lớp:** AI-K4\n*   **GPA:** 3.85\n*   **Email:** an.nv@vinuni.edu.vn\n*   **Trạng thái:** Đang học\n*   **Cố vấn học tập:** PGS.TS Nguyễn Văn A",
+    "latency_ms": 1681.28
+  },
+  {
+    "step": 1,
+    "query": "Đặt lịch hẹn tư vấn học vụ cho sinh viên SV2026002 với cố vấn TS. Lê Thị B vào lúc 09:00 ngày 20/09/2026.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "schedule_appointment",
+    "arguments": {
+      "student_id": "SV2026002",
+      "datetime_str": "09:00 20/09/2026",
+      "advisor_name": "TS. Lê Thị B"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "BK-SV2026002-99",
+      "student_id": "SV2026002",
+      "datetime": "09:00 20/09/2026",
+      "advisor": "TS. Lê Thị B",
+      "message": "Đặt lịch thành công cho sinh viên SV2026002 với TS. Lê Thị B vào lúc 09:00 20/09/2026."
+    },
+    "latency_ms": 1976.84
+  },
+  {
+    "step": 2,
+    "query": "Đặt lịch hẹn tư vấn học vụ cho sinh viên SV2026002 với cố vấn TS. Lê Thị B vào lúc 09:00 ngày 20/09/2026.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Lịch hẹn tư vấn học vụ của bạn đã được đặt thành công. Dưới đây là thông tin chi tiết:\n\n*   **Mã sinh viên:** SV2026002\n*   **Cố vấn:** TS. Lê Thị B\n*   **Thời gian:** 09:00 ngày 20/09/2026\n*   **Mã đặt lịch (Booking ID):** BK-SV2026002-99\n\nChúc bạn có buổi tư vấn hiệu quả!",
+    "latency_ms": 2139.55
+  },
+  {
+    "step": 1,
+    "query": "Hãy tra cứu cố vấn học tập của sinh viên SV2026001 rồi đặt lịch hẹn tư vấn với đúng cố vấn đó vào lúc 14:00 ngày 15/09/2026.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "academic_query",
+    "arguments": {
+      "student_id": "SV2026001"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "student_id": "SV2026001",
+      "data": {
+        "full_name": "Nguyễn Văn An",
+        "class": "AI-K4",
+        "gpa": 3.85,
+        "email": "an.nv@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "PGS.TS Nguyễn Văn A"
+      }
+    },
+    "latency_ms": 2093.2
+  },
+  {
+    "step": 2,
+    "query": "Hãy tra cứu cố vấn học tập của sinh viên SV2026001 rồi đặt lịch hẹn tư vấn với đúng cố vấn đó vào lúc 14:00 ngày 15/09/2026.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "schedule_appointment",
+    "arguments": {
+      "student_id": "SV2026001",
+      "advisor_name": "PGS.TS Nguyễn Văn A",
+      "datetime_str": "14:00 15/09/2026"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "BK-SV2026001-99",
+      "student_id": "SV2026001",
+      "datetime": "14:00 15/09/2026",
+      "advisor": "PGS.TS Nguyễn Văn A",
+      "message": "Đặt lịch thành công cho sinh viên SV2026001 với PGS.TS Nguyễn Văn A vào lúc 14:00 15/09/2026."
+    },
+    "latency_ms": 1715.17
+  },
+  {
+    "step": 3,
+    "query": "Hãy tra cứu cố vấn học tập của sinh viên SV2026001 rồi đặt lịch hẹn tư vấn với đúng cố vấn đó vào lúc 14:00 ngày 15/09/2026.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn, tôi đã hoàn tất yêu cầu của bạn.\n\nDựa trên thông tin từ hệ thống, cố vấn học tập của bạn là **PGS.TS Nguyễn Văn A**. Tôi đã đặt lịch hẹn tư vấn thành công cho bạn với thông tin chi tiết như sau:\n\n*   **Mã sinh viên:** SV2026001\n*   **Cố vấn học tập:** PGS.TS Nguyễn Văn A\n*   **Thời gian:** 14:00 ngày 15/09/2026\n*   **Mã đặt lịch:** BK-SV2026001-99\n\nChúc bạn có buổi tư vấn hiệu quả!",
+    "latency_ms": 1652.37
+  },
+  {
+    "step": 1,
+    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV9999999.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "academic_query",
+    "arguments": {
+      "student_id": "SV9999999"
+    },
+    "observation": {
+      "status": "NOT_FOUND",
+      "message": "Không tìm thấy dữ liệu sinh viên có mã 'SV9999999'"
+    },
+    "latency_ms": 1173.41
+  },
+  {
+    "step": 2,
+    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV9999999.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Rất tiếc, tôi không thể tìm thấy thông tin học vụ cho sinh viên có mã số **SV9999999** trong hệ thống dữ liệu của trường.\n\nVui lòng kiểm tra lại mã sinh viên và thử lại, hoặc liên hệ trực tiếp với Phòng Đào tạo (Registrar) để được hỗ trợ kiểm tra thông tin tài khoản của bạn.",
+    "latency_ms": 1420.46
+  },
+  {
+    "step": 1,
+    "query": "Theo quy chế học vụ VinUni, sinh viên cần GPA tích lũy tối thiểu bao nhiêu để tốt nghiệp?",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "search_vinuni_web",
+    "arguments": {
+      "topic": "academic_regulations",
+      "query": "GPA tối thiểu tốt nghiệp minimum cumulative GPA graduation requirement"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "query": "GPA tối thiểu tốt nghiệp minimum cumulative GPA graduation requirement",
+      "topic": "academic_regulations",
+      "results": [
+        {
+          "rank": 1,
+          "title": "Academic Regulations for Full-Time Undergraduate Programs - VinUni Policy",
+          "url": "https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/",
+          "heading": "Article 28. Recognition of Graduation",
+          "snippet": "Complete the minimum credits requirement within the period of candidature for each program; Complete General Education/VinCore and English proficiency requirements; Complete the requirements for the major, defined by each College; Resolve any “I – Incomplete” grade for required courses from the record; Earn a minimum cumulative grade point average (GPA) at 2.00/4.00 for all courses within the degree program; Until the time of graduation consideration, not have been proven guilty of a criminal offense. Fulfill other requirements of the University’s regulations and procedures;",
+          "score": 13.0
+        },
+        {
+          "rank": 2,
+          "title": "Academic Regulations for Full-Time Undergraduate Programs - VinUni Policy",
+          "url": "https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/",
+          "heading": "Article 26. Course Grade and GPA Calculation",
+          "snippet": "The Semester GPA will be used for academic distinction, scholarships, financial aids, and awards after each regular semester (based on the result of the final exam at the first regular exam). The Semester GPA and Cumulative GPA will be used for consideration of drop-out, academic standing, and classification of awards for graduation (based on the highest final exam score on the exams).",
+          "score": 11.0
+        },
+        {
+          "rank": 3,
+          "title": "Academic Regulations for Full-Time Undergraduate Programs - VinUni Policy",
+          "url": "https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/",
+          "heading": "Article 26. Course Grade and GPA Calculation",
+          "snippet": "Before calculating semester GPA and cumulative GPA, the letter grade will be converted into a 4-point scale. The Semester Grade Point Average (SGPA) is calculated for all courses taken in one semester, including failed courses, but excluding courses graded CR, NCR, IP, MT, I, NR, S, U, W, Z. It is weighted by the credit units for each course taken. The Cumulative GPA (CGPA) is calculated for all courses taken by the student during enrollment for a specific program. It reflects the student’s performance for all semesters up to the latest semester of study. The computation is the same as the...",
+          "score": 9.5
+        }
+      ],
+      "source": "data/vinuni_pages.json (crawled 2026-09-13T03:48:30+00:00)"
+    },
+    "latency_ms": 3069.88
+  },
+  {
+    "step": 2,
+    "query": "Theo quy chế học vụ VinUni, sinh viên cần GPA tích lũy tối thiểu bao nhiêu để tốt nghiệp?",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Theo quy chế học vụ của Đại học VinUni, để đủ điều kiện tốt nghiệp, sinh viên cần đạt mức điểm trung bình tích lũy (Cumulative GPA) tối thiểu là **2.00/4.00** cho tất cả các học phần trong chương trình đào tạo.\n\nNgoài yêu cầu về GPA, sinh viên cũng cần đáp ứng các điều kiện khác như:\n* Hoàn thành số tín chỉ tối thiểu theo quy định của từng chương trình.\n* Hoàn thành các yêu cầu về Giáo dục đại cương/VinCore và năng lực tiếng Anh.\n* Hoàn thành các yêu cầu chuyên ngành do từng Viện quy định.\n* Giải quyết xong các điểm \"I – Incomplete\" (chưa hoàn thành) cho các học phần bắt buộc.\n* Không bị kết tội phạm tội hình sự tính đến thời điểm xét tốt nghiệp.\n* Đáp ứng các yêu cầu khác theo quy định và quy trình của Nhà trường.\n\nThông tin chi tiết bạn có thể tham khảo tại: [Academic Regulations for Full-Time Undergraduate Programs - VinUni Policy](https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/) (Điều 28).",
+    "latency_ms": 2104.15
+  },
+  {
+    "step": 1,
+    "query": "Tra cứu GPA của sinh viên SV2026002, rồi đối chiếu với quy chế học vụ trên website VinUni để cho biết em ấy có đủ điều kiện GPA tốt nghiệp không.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "academic_query",
+    "arguments": {
+      "student_id": "SV2026002"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "student_id": "SV2026002",
+      "data": {
+        "full_name": "Trần Thị Bình",
+        "class": "AI-K4",
+        "gpa": 3.6,
+        "email": "binh.tt@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "TS. Lê Thị B"
+      }
+    },
+    "latency_ms": 1737.79
+  },
+  {
+    "step": 2,
+    "query": "Tra cứu GPA của sinh viên SV2026002, rồi đối chiếu với quy chế học vụ trên website VinUni để cho biết em ấy có đủ điều kiện GPA tốt nghiệp không.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "search_vinuni_web",
+    "arguments": {
+      "query": "GPA tối thiểu tốt nghiệp minimum cumulative GPA graduation requirement",
+      "topic": "academic_regulations"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "query": "GPA tối thiểu tốt nghiệp minimum cumulative GPA graduation requirement",
+      "topic": "academic_regulations",
+      "results": [
+        {
+          "rank": 1,
+          "title": "Academic Regulations for Full-Time Undergraduate Programs - VinUni Policy",
+          "url": "https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/",
+          "heading": "Article 28. Recognition of Graduation",
+          "snippet": "Complete the minimum credits requirement within the period of candidature for each program; Complete General Education/VinCore and English proficiency requirements; Complete the requirements for the major, defined by each College; Resolve any “I – Incomplete” grade for required courses from the record; Earn a minimum cumulative grade point average (GPA) at 2.00/4.00 for all courses within the degree program; Until the time of graduation consideration, not have been proven guilty of a criminal offense. Fulfill other requirements of the University’s regulations and procedures;",
+          "score": 13.0
+        },
+        {
+          "rank": 2,
+          "title": "Academic Regulations for Full-Time Undergraduate Programs - VinUni Policy",
+          "url": "https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/",
+          "heading": "Article 26. Course Grade and GPA Calculation",
+          "snippet": "The Semester GPA will be used for academic distinction, scholarships, financial aids, and awards after each regular semester (based on the result of the final exam at the first regular exam). The Semester GPA and Cumulative GPA will be used for consideration of drop-out, academic standing, and classification of awards for graduation (based on the highest final exam score on the exams).",
+          "score": 11.0
+        },
+        {
+          "rank": 3,
+          "title": "Academic Regulations for Full-Time Undergraduate Programs - VinUni Policy",
+          "url": "https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/",
+          "heading": "Article 26. Course Grade and GPA Calculation",
+          "snippet": "Before calculating semester GPA and cumulative GPA, the letter grade will be converted into a 4-point scale. The Semester Grade Point Average (SGPA) is calculated for all courses taken in one semester, including failed courses, but excluding courses graded CR, NCR, IP, MT, I, NR, S, U, W, Z. It is weighted by the credit units for each course taken. The Cumulative GPA (CGPA) is calculated for all courses taken by the student during enrollment for a specific program. It reflects the student’s performance for all semesters up to the latest semester of study. The computation is the same as the...",
+          "score": 9.5
+        }
+      ],
+      "source": "data/vinuni_pages.json (crawled 2026-09-13T03:48:30+00:00)"
+    },
+    "latency_ms": 1747.64
+  },
+  {
+    "step": 3,
+    "query": "Tra cứu GPA của sinh viên SV2026002, rồi đối chiếu với quy chế học vụ trên website VinUni để cho biết em ấy có đủ điều kiện GPA tốt nghiệp không.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Dựa trên kết quả tra cứu, tôi xin thông tin đến bạn về tình trạng học vụ của sinh viên Trần Thị Bình (SV2026002) như sau:\n\n1.  **GPA hiện tại:** Sinh viên Trần Thị Bình hiện có điểm trung bình tích lũy (Cumulative GPA) là **3.6/4.0**.\n2.  **Quy định về GPA tốt nghiệp:** Theo Điều 28 (Article 28) trong Quy chế học vụ dành cho chương trình đại học chính quy của VinUni, sinh viên cần đạt mức GPA tích lũy tối thiểu là **2.00/4.00** để đủ điều kiện tốt nghiệp.\n3.  **Kết luận:** Với GPA hiện tại là 3.6, sinh viên Trần Thị Bình **đã đáp ứng được yêu cầu về GPA** để xét tốt nghiệp theo quy định của nhà trường.\n\n*Lưu ý: Ngoài điều kiện về GPA, sinh viên cần hoàn thành các yêu cầu khác như số tín chỉ tối thiểu, các học phần bắt buộc (VinCore), yêu cầu về tiếng Anh và các quy định khác của chương trình đào tạo.*\n\nBạn có thể tham khảo chi tiết quy chế tại đây: [Academic Regulations for Full-Time Undergraduate Programs](https://policy.vinuni.edu.vn/all-policies/academic-regulations-for-full-time-undergraduate-programs/)",
+    "latency_ms": 1986.94
   }
 ]
