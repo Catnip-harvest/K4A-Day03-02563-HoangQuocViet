@@ -45,7 +45,9 @@ app.add_middleware(
 provider = get_llm_provider()
 mcp_server = MCPAcademicServer()
 
-STATIC_DIR.mkdir(parents=True, exist_ok=True)
+if not STATIC_DIR.is_dir():
+    # Trên serverless (Vercel) hệ thống tệp chỉ đọc, nên chỉ tạo khi thật sự thiếu
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
