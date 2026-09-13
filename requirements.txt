@@ -3,6 +3,7 @@ openai
 anthropic
 python-dotenv
 requests
+beautifulsoup4
 pydantic
 rich
 fastapi

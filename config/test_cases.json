@@ -2,8 +2,8 @@
   {
     "id": "TC01",
     "type": "direct_query",
-    "question": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
-    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
+    "question": "Chào bạn, bạn là ai và có thể giúp tôi những việc gì?",
+    "expected_behavior": "Agent trả lời trực tiếp từ System Prompt (giới thiệu vai trò và các Tool sẵn có), không gọi bất kỳ Tool nào.",
     "complexity": "Low"
   },
   {
@@ -33,5 +33,19 @@
     "question": "Hãy tra cứu thông tin học vụ của sinh viên SV9999999.",
     "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool và đưa ra phản hồi lịch sự, chính xác không bịa đặt dữ liệu.",
     "complexity": "Medium"
+  },
+  {
+    "id": "TC06",
+    "type": "web_lookup",
+    "question": "Theo quy chế học vụ VinUni, sinh viên cần GPA tích lũy tối thiểu bao nhiêu để tốt nghiệp?",
+    "expected_behavior": "Agent gọi Tool 'search_vinuni_web', trả lời dựa trên trang Academic Regulations của website VinUni và trích dẫn URL nguồn.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC07",
+    "type": "multi_tool_reasoning",
+    "question": "Tra cứu GPA của sinh viên SV2026002, rồi đối chiếu với quy chế học vụ trên website VinUni để cho biết em ấy có đủ điều kiện GPA tốt nghiệp không.",
+    "expected_behavior": "Agent gọi 'academic_query' rồi 'search_vinuni_web', tổng hợp hai Observation và nêu rõ nguồn thông tin.",
+    "complexity": "High"
   }
 ]

@@ -67,6 +67,9 @@ def summarize_observation(obs_data: dict) -> str:
         return "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server."
 
     if obs_data.get("status") == "SUCCESS":
+        if obs_data.get("results"):
+            top = obs_data["results"][0]
+            return f"Theo {top.get('title', '')} ({top.get('url', '')}): {top.get('snippet', '')}"
         if "data" in obs_data:
             d = obs_data["data"]
             return (
@@ -296,7 +299,7 @@ if __name__ == "__main__":
                 print("\n👋 Đã thoát phiên tương tác.")
                 break
     elif "--all" in sys.argv:
-        print("🚀 [TEST SUITE MODE] Kiểm tra 5 Test Cases:")
+        print(f"🚀 [TEST SUITE MODE] Kiểm tra {len(tests)} Test Cases:")
         completed_count = 0
         todo_count = 0
         all_traces = []
